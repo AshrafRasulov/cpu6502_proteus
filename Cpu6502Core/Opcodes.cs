@@ -5,65 +5,6 @@ namespace Cpu6502Core
 {
     public static class Opcodes
     {
-        // // NOP
-        // public const byte NOP = 0xEA;
-
-        // // LDA
-        // public const byte LDA_Immediate = 0xA9;
-        // public const byte LDA_ZeroPage  = 0xA5;
-        // public const byte LDA_Absolute  = 0xAD;
-
-        // // STA
-        // public const byte STA_ZeroPage  = 0x85;
-        // public const byte STA_Absolute  = 0x8D;
-
-        // // LDX / STX
-        // public const byte LDX_Immediate = 0xA2;
-        // public const byte LDX_ZeroPage  = 0xA6;
-        // public const byte LDX_Absolute  = 0xAE;
-        // public const byte STX_ZeroPage  = 0x86;
-        // public const byte STX_Absolute  = 0x8E;
-
-        // // LDY / STY
-        // public const byte LDY_Immediate = 0xA0;
-        // public const byte LDY_ZeroPage  = 0xA4;
-        // public const byte LDY_Absolute  = 0xAC;
-        // public const byte STY_ZeroPage  = 0x84;
-        // public const byte STY_Absolute  = 0x8C;
-
-        // // ADC
-        // public const byte ADC_Immediate = 0x69;
-        // public const byte ADC_ZeroPage  = 0x65;
-
-        // // AND
-        // public const byte AND_Immediate = 0x29;
-        // public const byte AND_ZeroPage  = 0x25;
-
-        // // ORA
-        // public const byte ORA_Immediate = 0x09;
-        // public const byte ORA_ZeroPage  = 0x05;
-
-        // // EOR
-        // public const byte EOR_Immediate = 0x49;
-        // public const byte EOR_ZeroPage  = 0x45;
-
-        // // CMP
-        // public const byte CMP_Immediate = 0xC9;
-        // public const byte CMP_ZeroPage  = 0xC5;
-
-        // // Control Flow & Branching
-        // public const byte JMP_Absolute  = 0x4C;
-        // public const byte JSR_Absolute  = 0x20;
-        // public const byte RTS           = 0x60;
-        // public const byte BEQ           = 0xF0;
-        // public const byte BNE           = 0xD0;
-
-        // // Stack Operations
-        // public const byte PHA = 0x48;
-        // public const byte PLA = 0x68;
-        // public const byte PHP = 0x08;
-        // public const byte PLP = 0x28;
-
         // NOP
         public const byte NOP = 0xEA;
 

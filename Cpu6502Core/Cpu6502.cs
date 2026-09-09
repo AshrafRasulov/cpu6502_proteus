@@ -69,6 +69,19 @@ namespace Cpu6502Core
             // CMP
             _instructions[Opcodes.CMP_Immediate] = new CmpImmediateInstruction();
             _instructions[Opcodes.CMP_ZeroPage]  = new CmpZeroPageInstruction();
+            _instructions[Opcodes.CMP_Absolute]  = new CmpAbsoluteInstruction(); 
+
+            // CPX
+            _instructions[Opcodes.CPX_Immediate] = new CpxImmediateInstruction();
+            _instructions[Opcodes.CPX_ZeroPage]  = new CpxZeroPageInstruction();
+            _instructions[Opcodes.CPX_Absolute]  = new CpxAbsoluteInstruction(); 
+
+            // CPY
+            _instructions[Opcodes.CPY_Immediate] = new CpyImmediateInstruction();
+            _instructions[Opcodes.CPY_ZeroPage]  = new CpyZeroPageInstruction();
+            _instructions[Opcodes.CPY_Absolute]  = new CpyAbsoluteInstruction(); 
+
+
 
             // Control Flow & Branching
             _instructions[Opcodes.JMP_Absolute]  = new JmpAbsoluteInstruction();
@@ -82,6 +95,16 @@ namespace Cpu6502Core
             _instructions[Opcodes.PLA] = new PlaInstruction();
             _instructions[Opcodes.PHP] = new PhpInstruction();
             _instructions[Opcodes.PLP] = new PlpInstruction();
+
+
+            // Bitwise
+            _instructions[Opcodes.BIT_ZeroPage] = new BitZeroPageInstruction();
+
+            // Shift / Rotate Accumulator
+            _instructions[Opcodes.ASL_Accumulator] = new AslAccumulatorInstruction();
+            _instructions[Opcodes.LSR_Accumulator] = new LsrAccumulatorInstruction();
+            _instructions[Opcodes.ROL_Accumulator] = new RolAccumulatorInstruction();
+            _instructions[Opcodes.ROR_Accumulator] = new RorAccumulatorInstruction();
         }
 
         public void Reset()
@@ -147,6 +170,60 @@ namespace Cpu6502Core
         {
             UpdateCompareFlags(reg, operand);
         }
+
+        // Методы выборки операндов (Fetch)
+        public byte FetchImmediate(Memory memory, Registers regs)
+        {
+            return memory.Read(regs.PC++);
+        }
+
+        public byte FetchZeroPage(Memory memory, Registers regs)
+        {
+            return memory.Read(regs.PC++);
+        }
+
+        public ushort FetchAbsolute(Memory memory, Registers regs)
+        {
+            ushort pc = regs.PC;
+            byte low = memory.Read(pc++);
+            byte high = memory.Read(pc++);
+            regs.PC = pc;
+            return (ushort)((high << 8) | low);
+        }
+
+        // Методы установки флагов с поддержкой Registers regs
+
+        public void SetZeroFlag(Registers regs, byte value)
+        {
+            if (value == 0) regs.P |= 0x02;
+            else regs.P = (byte)(regs.P & ~0x02);
+        }
+
+
+        public void SetNegativeFlag(Registers regs, byte value)
+        {
+            if ((value & 0x80) != 0) regs.P |= 0x80;
+            else regs.P = (byte)(regs.P & ~0x80);
+            
+        }
+
+
+        public void SetCarryFlag(Registers regs, bool condition)
+        {
+            if (condition)
+                regs.P |= 0x01; // Бит Carry (C)
+            else
+                regs.P = (byte)(regs.P & ~0x01);
+        }
+
+        public void SetOverflowFlag(Registers regs, bool condition)
+        {
+            if (condition)
+                regs.P |= 0x40; // Бит Overflow (V)
+            else
+                regs.P = (byte)(regs.P & ~0x40);
+        }        
+        
     }
 
     public class NopInstruction : IInstruction

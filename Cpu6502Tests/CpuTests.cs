@@ -369,5 +369,98 @@ namespace Cpu6502Tests
             Assert.Equal(0x77, cpu.Read(0x4321));
         }
 
+        [Fact]
+        public void TestAslAccumulator()
+        {
+            var cpu = new Cpu6502();
+            // Загружаем 0x40 (01000000), ASL сдвигает влево, старший бит уходит в Carry
+            byte[] program = new byte[] { 0xA9, 0x40, 0x0A };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDA #$40
+            cpu.Step(); // ASL A (A станет 0x80, Carry = 0)
+
+            Assert.Equal(0x80, cpu.A);
+            Assert.False((cpu.P & 0x01) != 0); // Carry флаг 0
+            Assert.True((cpu.P & 0x80) != 0);  // Negative флаг 1
+        }
+
+        [Fact]
+        public void TestLsrAccumulator()
+        {
+            var cpu = new Cpu6502();
+            // Загружаем 0x01, LSR сдвигает вправо, младший бит уходит в Carry
+            byte[] program = new byte[] { 0xA9, 0x01, 0x4A };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDA #$01
+            cpu.Step(); // LSR A (A станет 0x00, Carry = 1, Zero = 1)
+
+            Assert.Equal(0x00, cpu.A);
+            Assert.True((cpu.P & 0x01) != 0);  // Carry флаг 1
+            Assert.True((cpu.P & 0x02) != 0);  // Zero флаг 1
+        }
+
+        [Fact]
+        public void TestCpxImmediate()
+        {
+            var cpu = new Cpu6502();
+            // LDX #$30, CPX #$20 (X > значение, должен установиться Carry)
+            byte[] program = new byte[] { 0xA2, 0x30, 0xE0, 0x20 };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDX #$30
+            cpu.Step(); // CPX #$20
+
+            Assert.Equal(0x30, cpu.X);
+            Assert.True((cpu.P & 0x01) != 0);  // Carry флаг активен (30 >= 20)
+            Assert.False((cpu.P & 0x02) != 0); // Zero неактивен
+        }
+
+        [Fact]
+        public void TestCpyImmediate()
+        {
+            var cpu = new Cpu6502();
+            // 0xA0 — это LDY Immediate
+            // 0x15 — аргумент для LDY
+            // 0xC0 — это опкод для CPY Immediate
+
+  
+            byte[] program = new byte[] { 0xA0, 0x15, 0xC0, 0x15 };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDY #$15
+            cpu.Step(); // CPY #$15
+
+            Assert.Equal(0x15, cpu.Y);
+            Assert.True((cpu.P & 0x01) != 0);  // Carry активен
+            Assert.True((cpu.P & 0x02) != 0);  // Zero активен
+        }
+
+        [Fact]
+        public void TestBitInstruction()
+        {
+            var cpu = new Cpu6502();
+            // Записываем в ячейку 0x10 значение 0xC0 (биты 7 и 6 взведены: N=1, V=1)
+            cpu.Write(0x0010, 0xC0);
+            
+            // Загружаем в A значение 0x40 (бит 6), затем проверяем BIT $10
+            byte[] program = new byte[] { 0xA9, 0x40, 0x24, 0x10 };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDA #$40
+            cpu.Step(); // BIT $10
+
+            // Аккумулятор не изменился
+            Assert.Equal(0x40, cpu.A);
+            // Флаг Negative (бит 7) берется из бит 7 памяти (0xC0 -> N=1)
+            Assert.True((cpu.P & 0x80) != 0);
+            // Флаг Overflow (бит 6) берется из бит 6 памяти (0xC0 -> V=1)
+            Assert.True((cpu.P & 0x40) != 0);
+            // Флаг Zero (A & память = 0x40 & 0xC0 = 0x40 != 0, значит Zero = 0)
+            Assert.False((cpu.P & 0x02) != 0);
+        }
+
+
     }
 }
