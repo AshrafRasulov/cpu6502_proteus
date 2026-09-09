@@ -191,5 +191,183 @@ namespace Cpu6502Tests
             Assert.True((cpu.P & 0x01) != 0); // Carry флаг активен (50 >= 50)
         }
 
+        [Fact]
+        public void TestJmpAndBranchInstructions()
+        {
+            var cpu = new Cpu6502();
+
+            // Загружаем инструкцию JMP Absolute по адресу 0x8000, прыгаем на 0x9000
+            // Опкод JMP (0x4C), младший байт (0x00), старший байт (0x90)
+            byte[] program = new byte[] { 0x4C, 0x00, 0x90 };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // Выполняем JMP
+
+            Assert.Equal(0x9000, cpu.PC);
+        }
+        
+        [Fact]
+        public void TestBeqInstruction()
+        {
+            var cpu = new Cpu6502();
+
+            // Загружаем программу начиная с адреса 0x8000 (LoadProgram сама установит PC)
+            byte[] program = new byte[] { 0xA9, 0x00, 0xF0, 0x05 };
+            cpu.LoadProgram(program, 0x8000);
+
+            // Шаг 1: Выполняем LDA #$00 (PC сместится на 2 байта, активируется Zero flag)
+            cpu.Step();
+
+            // Шаг 2: Выполняем BEQ +5
+            cpu.Step();
+
+            Assert.Equal(0x8009, cpu.PC);
+        }
+
+        [Fact]
+        public void TestJsrAndRtsInstructions()
+        {
+            var cpu = new Cpu6502();
+
+            // Программа:
+            // 0x8000: JSR 0x8005 (вызываем подпрограмму)
+            // 0x8003: NOP (сюда должны вернуться после RTS)
+            // ...
+            // 0x8005: RTS (возврат из подпрограммы)
+            
+            byte[] program = new byte[] {
+                0x20, 0x05, 0x80, // 0x8000: JSR $8005
+                0xEA,             // 0x8003: NOP
+                0xEA,             // 0x8004: NOP (заполнитель для смещения)
+                0x60              // 0x8005: RTS
+            };
+            
+            cpu.LoadProgram(program, 0x8000);
+
+            // Выполняем JSR (PC должен перейти на 0x8005, а адрес возврата (0x8002) записаться в стек)
+            cpu.Step();
+            Assert.Equal(0x8005, cpu.PC);
+
+            // Выполняем RTS (процессор должен считать адрес из стека, прибавить 1 и вернуться на 0x8003)
+            cpu.Step();
+            Assert.Equal(0x8003, cpu.PC);
+        }
+
+        [Fact]
+        public void TestPhaAndPlaInstructions()
+        {
+            var cpu = new Cpu6502();
+
+            // Программа:
+            // LDA #$77
+            // PHA (сохраняем в стек)
+            // LDA #$00 (обнуляем аккумулятор)
+            // PLA (достаем из стека обратно в A)
+            byte[] program = new byte[] { 0xA9, 0x77, 0x48, 0xA9, 0x00, 0x68 };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDA #$77
+            Assert.Equal(0x77, cpu.A);
+
+            cpu.Step(); // PHA
+            cpu.Step(); // LDA #$00
+            Assert.Equal(0x00, cpu.A);
+
+            cpu.Step(); // PLA
+            Assert.Equal(0x77, cpu.A);
+        }
+
+        [Fact]
+        public void TestPhpAndPlpInstructions()
+        {
+            var cpu = new Cpu6502();
+            // Программа:
+            // 1. LDA #$00 -> устанавливает Zero флаг (P содержит флаг Zero)
+            // 2. PHP      -> сохраняет статус в стек
+            // 3. LDA #$01 -> сбрасывает Zero флаг в процессоре
+            // 4. PLP      -> восстанавливает статус из стека (возвращает Zero флаг)
+            byte[] program = new byte[] { 0xA9, 0x00, 0x08, 0xA9, 0x01, 0x28 };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDA #$00 (ставит Zero флаг)
+            cpu.Step(); // PHP (пушим статус со взведенным Zero)
+            
+            cpu.Step(); // LDA #$01 (сбрасывает Zero флаг в регистре P)
+            // Проверяем, что флаг действительно сбросился
+            Assert.Equal(0, cpu.P & 0x02);
+
+            cpu.Step(); // PLP (достает статус обратно из стека)
+            // Проверяем, что флаг Zero снова вернулся из стека
+            Assert.NotEqual(0, cpu.P & 0x02);
+        }
+
+        [Fact]
+        public void TestBneNegativeBranch()
+        {
+            var cpu = new Cpu6502();
+
+            // Программа:
+            // 0x8000: LDA #$01 (2 байта, переносит PC на 0x8002)
+            // 0x8002: BNE 0xFA (-6 в дополнительном коде) (2 байта, переносит PC на 0x8004)
+            // При выполнении ветвления PC станет: 0x8004 + (sbyte)0xFA (-6) = 0x80FE
+            byte[] program = new byte[] { 0xA9, 0x01, 0xD0, 0xFA };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // Выполнился LDA #$01, PC = 0x8002
+            Assert.Equal(0x8002, cpu.PC);
+
+            cpu.Step(); // Выполнился BNE с отрицательным смещением
+            // Assert.Equal(0x80FE, cpu.PC);
+            Assert.Equal(0x7FFE, cpu.PC);
+        }
+
+        [Fact]
+        public void TestStxAbsolute()
+        {
+            var cpu = new Cpu6502();
+            // Программа: LDX #$55, STX $1234
+            // Опкоды: LDX Immediate (0xA2, 0x55), STX Absolute (0x8E, 0x34, 0x12)
+            byte[] program = new byte[] { 0xA2, 0x55, 0x8E, 0x34, 0x12 };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDX #$55
+            Assert.Equal(0x55, cpu.X);
+
+            cpu.Step(); // STX $1234
+            Assert.Equal(0x55, cpu.Read(0x1234));
+        }
+
+        [Fact]
+        public void TestStyZeroPage()
+        {
+            var cpu = new Cpu6502();
+            // Программа: LDY #$66, STY $30
+            // Опкоды: LDY Immediate (0xA0, 0x66), STY ZeroPage (0x84, 0x30)
+            byte[] program = new byte[] { 0xA0, 0x66, 0x84, 0x30 };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDY #$66
+            Assert.Equal(0x66, cpu.Y);
+
+            cpu.Step(); // STY $30
+            Assert.Equal(0x66, cpu.Read(0x0030));
+        }
+
+        [Fact]
+        public void TestStyAbsolute()
+        {
+            var cpu = new Cpu6502();
+            // Программа: LDY #$77, STY $4321
+            // Опкоды: LDY Immediate (0xA0, 0x77), STY Absolute (0x8C, 0x21, 0x43)
+            byte[] program = new byte[] { 0xA0, 0x77, 0x8C, 0x21, 0x43 };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDY #$77
+            Assert.Equal(0x77, cpu.Y);
+
+            cpu.Step(); // STY $4321
+            Assert.Equal(0x77, cpu.Read(0x4321));
+        }
+
     }
 }

@@ -2,6 +2,8 @@ using Cpu6502Core.Interfaces;
 
 namespace Cpu6502Core.Instructions
 {
+    // --- LDY (Load Y Register) ---
+
     public class LdyImmediateInstruction : IInstruction
     {
         public void Execute(Cpu6502 cpu, Memory memory, Registers regs)
@@ -25,6 +27,18 @@ namespace Cpu6502Core.Instructions
         }
     }
 
+    public class LdyZeroPageXInstruction : IInstruction
+    {
+        public void Execute(Cpu6502 cpu, Memory memory, Registers regs)
+        {
+            ushort pc = regs.PC;
+            ushort addr = AddressingModes.GetZeroPageX(memory, ref pc, regs.X);
+            regs.PC = pc;
+            regs.Y = memory.Read(addr);
+            cpu.UpdateZeroAndNegativeFlags(regs.Y);
+        }
+    }
+
     public class LdyAbsoluteInstruction : IInstruction
     {
         public void Execute(Cpu6502 cpu, Memory memory, Registers regs)
@@ -37,25 +51,52 @@ namespace Cpu6502Core.Instructions
         }
     }
 
-    public class StyZeroPageInstruction : IInstruction
+    public class LdyAbsoluteXInstruction : IInstruction
     {
         public void Execute(Cpu6502 cpu, Memory memory, Registers regs)
         {
             ushort pc = regs.PC;
-            ushort zeroPageAddr = AddressingModes.GetZeroPage(memory, ref pc);
+            ushort addr = AddressingModes.GetAbsoluteX(memory, ref pc, regs.X);
             regs.PC = pc;
-            memory.Write(zeroPageAddr, regs.Y);
+            regs.Y = memory.Read(addr);
+            cpu.UpdateZeroAndNegativeFlags(regs.Y);
         }
     }
 
-    public class StyAbsoluteInstruction : IInstruction
+    // --- CPY (Compare Y Register) ---
+
+    public class CpyImmediateInstruction : IInstruction
     {
         public void Execute(Cpu6502 cpu, Memory memory, Registers regs)
         {
             ushort pc = regs.PC;
-            ushort absAddr = AddressingModes.GetAbsolute(memory, ref pc);
+            byte value = AddressingModes.GetImmediate(memory, ref pc);
             regs.PC = pc;
-            memory.Write(absAddr, regs.Y);
+            cpu.Compare(regs.Y, value);
+        }
+    }
+
+    public class CpyZeroPageInstruction : IInstruction
+    {
+        public void Execute(Cpu6502 cpu, Memory memory, Registers regs)
+        {
+            ushort pc = regs.PC;
+            ushort addr = AddressingModes.GetZeroPage(memory, ref pc);
+            regs.PC = pc;
+            byte value = memory.Read(addr);
+            cpu.Compare(regs.Y, value);
+        }
+    }
+
+    public class CpyAbsoluteInstruction : IInstruction
+    {
+        public void Execute(Cpu6502 cpu, Memory memory, Registers regs)
+        {
+            ushort pc = regs.PC;
+            ushort addr = AddressingModes.GetAbsolute(memory, ref pc);
+            regs.PC = pc;
+            byte value = memory.Read(addr);
+            cpu.Compare(regs.Y, value);
         }
     }
 }

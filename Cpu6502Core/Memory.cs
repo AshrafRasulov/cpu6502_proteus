@@ -28,5 +28,12 @@ namespace Cpu6502Core
                 Array.Copy(program, 0, _mem, startAddress, program.Length);
             }
         }
+
+        public ushort RWORD(ushort address)
+        {
+            byte lowByte = Read(address);
+            byte highByte = Read((ushort)(address + 1));
+            return (ushort)((highByte << 8) | lowByte);
+        }
     }
 }
