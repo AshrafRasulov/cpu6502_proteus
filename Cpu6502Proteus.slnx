@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Cpu6502Core/Cpu6502Core.csproj" />
+  <Project Path="Cpu6502Tests/Cpu6502Tests.csproj" />
+</Solution>
