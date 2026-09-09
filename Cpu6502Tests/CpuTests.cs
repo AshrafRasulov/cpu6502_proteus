@@ -461,6 +461,131 @@ namespace Cpu6502Tests
             Assert.False((cpu.P & 0x02) != 0);
         }
 
+        [Fact]
+        public void TestAdcImmediateAndZeroPage()
+        {
+            var cpu = new Cpu6502();
+            // Записываем в ячейку 0x20 значение 0x15
+            cpu.Write(0x0020, 0x15);
+
+            // Программа: 
+            // 1. LDA #$10 (загрузить в A значение 0x10)
+            // 2. ADC #$05 (добавить немедленно 0x05 -> A = 0x15)
+            // 3. ADC $20  (добавить из ZeroPage 0x20 -> 0x15 + 0x15 = 0x2A)
+            byte[] program = new byte[] { 0xA9, 0x10, 0x69, 0x05, 0x65, 0x20 };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDA #$10
+            cpu.Step(); // ADC #$05
+            Assert.Equal(0x15, cpu.A);
+
+            cpu.Step(); // ADC $20
+            Assert.Equal(0x2A, cpu.A);
+        }
+
+        [Fact]
+        public void TestAndInstruction()
+        {
+            var cpu = new Cpu6502();
+            
+            // Программа:
+            // 1. LDA #$0F (0000 1111)
+            // 2. AND #$33 (0011 0011) -> результат 0x03 (0000 0011)
+            byte[] program = new byte[] { 0xA9, 0x0F, 0x29, 0x33 };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDA #$0F
+            cpu.Step(); // AND #$33
+
+            Assert.Equal(0x03, cpu.A);
+            // Флаг Zero должен быть False, так как результат не 0
+            Assert.False((cpu.P & 0x02) != 0);
+        }
+
+        [Fact]
+        public void TestCmpInstruction()
+        {
+            var cpu = new Cpu6502();
+            
+            // Программа:
+            // 1. LDA #$50
+            // 2. CMP #$40 (сравнить 0x50 с 0x40: A >= operand, значит Carry = 1, Zero = 0)
+            byte[] program = new byte[] { 0xA9, 0x50, 0xC9, 0x40 };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDA #$50
+            cpu.Step(); // CMP #$40
+
+            // Аккумулятор не должен измениться при CMP
+            Assert.Equal(0x50, cpu.A);
+            // Флаг Carry (бит 0) должен быть равен 1 (так как 0x50 >= 0x40)
+            Assert.True((cpu.P & 0x01) != 0);
+            // Флаг Zero (бит 1) должен быть равен 0
+            Assert.False((cpu.P & 0x02) != 0);
+        }
+
+
+        // Branching Instructions
+
+        [Fact]
+        public void TestCmpImmediateAndZeroPage()
+        {
+            var cpu = new Cpu6502();
+            // LDA #$50, CMP #$30 (сравнение большего с меньшим: флаг C=1, Z=0, N=0)
+            byte[] program = { 0xA9, 0x50, 0xC9, 0x30 };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDA
+            cpu.Step(); // CMP
+
+            Assert.Equal(0x01, cpu.P & 0x01); // Carry установлений (A >= operand)
+            Assert.Equal(0x00, cpu.P & 0x02); // Zero сброшен
+        }
+
+        [Fact]
+        public void TestBranchEqualTaken()
+        {
+            var cpu = new Cpu6502();
+            // Загружаем 0 в аккумулятор, устанавливаем Zero флаг, затем BEQ на +5 байт
+            // SEC/LDA #0 выставит Z=1
+            byte[] program = { 0xA9, 0x00, 0xF0, 0x03, 0xEA, 0xEA, 0xEA };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDA #$00 (Z flag = 1)
+            cpu.Step(); // BEQ (должен сработать и сместить PC на 3 байта вперед)
+
+            // PC должен быть 0x8002 (начало BEQ) + 2 (размер инструкции) + 3 (смещение) = 0x8007
+            Assert.Equal(0x8007, cpu.PC);
+        }
+
+        [Fact]
+        public void TestBranchNotEqualNotTaken()
+        {
+            var cpu = new Cpu6502();
+            // LDA #$01 -> Z=0, BEQ не сработает
+            byte[] program = { 0xA9, 0x01, 0xF0, 0x03 };
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // LDA #$01
+            cpu.Step(); // BEQ (не срабатывает, т.к. Z=0)
+
+            // PC должен просто перейти к следующей инструкции: 0x8000 + 2 + 2 = 0x8004
+            Assert.Equal(0x8004, cpu.PC);
+        }
+
+        [Fact]
+        public void TestFlagInstructions()
+        {
+            var cpu = new Cpu6502();
+            byte[] program = { 0x38, 0x18 }; // SEC, CLC
+            cpu.LoadProgram(program, 0x8000);
+
+            cpu.Step(); // SEC (Carry = 1)
+            Assert.Equal(0x01, cpu.P & 0x01);
+
+            cpu.Step(); // CLC (Carry = 0)
+            Assert.Equal(0x00, cpu.P & 0x01);
+        }
 
     }
 }

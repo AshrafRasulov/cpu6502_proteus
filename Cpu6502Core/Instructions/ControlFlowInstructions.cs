@@ -166,4 +166,34 @@ namespace Cpu6502Core.Instructions
             }
         }
     }
+
+    public class BvcInstruction : IInstruction
+    {
+        public void Execute(Cpu6502 cpu, Memory memory, Registers regs)
+        {
+            ushort pc = regs.PC;
+            sbyte offset = (sbyte)memory.Read(pc++);
+            regs.PC = pc;
+            
+            if ((regs.P & 0x40) == 0) // Overflow clear
+            {
+                regs.PC = (ushort)(regs.PC + offset);
+            }
+        }
+    }
+
+    public class BvsInstruction : IInstruction
+    {
+        public void Execute(Cpu6502 cpu, Memory memory, Registers regs)
+        {
+            ushort pc = regs.PC;
+            sbyte offset = (sbyte)memory.Read(pc++);
+            regs.PC = pc;
+            
+            if ((regs.P & 0x40) != 0) // Overflow set
+            {
+                regs.PC = (ushort)(regs.PC + offset);
+            }
+        }
+    }
 }

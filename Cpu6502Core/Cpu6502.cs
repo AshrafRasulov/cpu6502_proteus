@@ -67,10 +67,25 @@ namespace Cpu6502Core
             _instructions[Opcodes.EOR_ZeroPage]  = new EorZeroPageInstruction();
 
             // CMP
-            _instructions[Opcodes.CMP_Immediate] = new CmpImmediateInstruction();
-            _instructions[Opcodes.CMP_ZeroPage]  = new CmpZeroPageInstruction();
-            _instructions[Opcodes.CMP_Absolute]  = new CmpAbsoluteInstruction(); 
+            _instructions[Opcodes.CMP_Immediate]   = new CmpImmediateInstruction();
+            _instructions[Opcodes.CMP_ZeroPage]    = new CmpZeroPageInstruction();
+            _instructions[Opcodes.CMP_ZeroPageX]   = new CmpZeroPageXInstruction();
+            _instructions[Opcodes.CMP_Absolute]    = new CmpAbsoluteInstruction(); 
+            _instructions[Opcodes.CMP_AbsoluteX]   = new CmpAbsoluteXInstruction();
+            _instructions[Opcodes.CMP_AbsoluteY]   = new CmpAbsoluteYInstruction();
+            _instructions[Opcodes.CMP_IndirectX]   = new CmpIndirectXInstruction();
+            _instructions[Opcodes.CMP_IndirectY]   = new CmpIndirectYInstruction();
 
+
+            // Flag Instructions
+            _instructions[Opcodes.CLC] = new ClcInstruction();
+            _instructions[Opcodes.SEC] = new SecInstruction();
+            _instructions[Opcodes.CLI] = new CliInstruction();
+            _instructions[Opcodes.SEI] = new SeiInstruction();
+            _instructions[Opcodes.CLV] = new ClvInstruction();
+            _instructions[Opcodes.CLD] = new CldInstruction();
+            _instructions[Opcodes.SED] = new SedInstruction();
+            
             // CPX
             _instructions[Opcodes.CPX_Immediate] = new CpxImmediateInstruction();
             _instructions[Opcodes.CPX_ZeroPage]  = new CpxZeroPageInstruction();
@@ -80,8 +95,6 @@ namespace Cpu6502Core
             _instructions[Opcodes.CPY_Immediate] = new CpyImmediateInstruction();
             _instructions[Opcodes.CPY_ZeroPage]  = new CpyZeroPageInstruction();
             _instructions[Opcodes.CPY_Absolute]  = new CpyAbsoluteInstruction(); 
-
-
 
             // Control Flow & Branching
             _instructions[Opcodes.JMP_Absolute]  = new JmpAbsoluteInstruction();
@@ -105,6 +118,17 @@ namespace Cpu6502Core
             _instructions[Opcodes.LSR_Accumulator] = new LsrAccumulatorInstruction();
             _instructions[Opcodes.ROL_Accumulator] = new RolAccumulatorInstruction();
             _instructions[Opcodes.ROR_Accumulator] = new RorAccumulatorInstruction();
+
+            // Branching Instructions
+            _instructions[Opcodes.BPL] = new BplInstruction();
+            _instructions[Opcodes.BMI] = new BmiInstruction();
+            _instructions[Opcodes.BVC] = new BvcInstruction();
+            _instructions[Opcodes.BVS] = new BvsInstruction();
+            _instructions[Opcodes.BCC] = new BccInstruction();
+            _instructions[Opcodes.BCS] = new BcsInstruction();
+            _instructions[Opcodes.BNE] = new BneInstruction();
+            _instructions[Opcodes.BEQ] = new BeqInstruction();
+
         }
 
         public void Reset()
