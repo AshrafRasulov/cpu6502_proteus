@@ -25,59 +25,130 @@ namespace Cpu6502Core
 
         private void RegisterInstructions()
         {
+            // NOP
             _instructions[Opcodes.NOP] = new NopInstruction();
 
-            // LDA
+            // --- LDA (Load Accumulator) ---
             _instructions[Opcodes.LDA_Immediate] = new LdaImmediateInstruction();
             _instructions[Opcodes.LDA_ZeroPage]  = new LdaZeroPageInstruction();
+            _instructions[Opcodes.LDA_ZeroPageX] = new LdaZeroPageXInstruction();
             _instructions[Opcodes.LDA_Absolute]  = new LdaAbsoluteInstruction();
+            _instructions[Opcodes.LDA_AbsoluteX] = new LdaAbsoluteXInstruction();
+            _instructions[Opcodes.LDA_AbsoluteY] = new LdaAbsoluteYInstruction();
+            _instructions[Opcodes.LDA_IndirectX] = new LdaIndirectXInstruction();
+            _instructions[Opcodes.LDA_IndirectY] = new LdaIndirectYInstruction();
 
-            // STA
+            // --- STA (Store Accumulator) ---
             _instructions[Opcodes.STA_ZeroPage]  = new StaZeroPageInstruction();
             _instructions[Opcodes.STA_Absolute]  = new StaAbsoluteInstruction();
 
-            // LDX / STX
+            // --- LDX / STX (X Register) ---
             _instructions[Opcodes.LDX_Immediate] = new LdxImmediateInstruction();
             _instructions[Opcodes.LDX_ZeroPage]  = new LdxZeroPageInstruction();
+            _instructions[Opcodes.LDX_ZeroPageY] = new LdxZeroPageYInstruction();
             _instructions[Opcodes.LDX_Absolute]  = new LdxAbsoluteInstruction();
+            _instructions[Opcodes.LDX_AbsoluteY] = new LdxAbsoluteYInstruction();
             _instructions[Opcodes.STX_ZeroPage]  = new StxZeroPageInstruction();
             _instructions[Opcodes.STX_Absolute]  = new StxAbsoluteInstruction();
 
-            // LDY / STY
+            // --- LDY / STY (Y Register) ---
             _instructions[Opcodes.LDY_Immediate] = new LdyImmediateInstruction();
             _instructions[Opcodes.LDY_ZeroPage]  = new LdyZeroPageInstruction();
+            _instructions[Opcodes.LDY_ZeroPageX] = new LdyZeroPageXInstruction();
             _instructions[Opcodes.LDY_Absolute]  = new LdyAbsoluteInstruction();
+            _instructions[Opcodes.LDY_AbsoluteX] = new LdyAbsoluteXInstruction();
             _instructions[Opcodes.STY_ZeroPage]  = new StyZeroPageInstruction();
             _instructions[Opcodes.STY_Absolute]  = new StyAbsoluteInstruction();
 
-            // ADC
+            // --- ADC (Add with Carry) ---
             _instructions[Opcodes.ADC_Immediate] = new AdcImmediateInstruction();
             _instructions[Opcodes.ADC_ZeroPage]  = new AdcZeroPageInstruction();
+            _instructions[Opcodes.ADC_ZeroPageX] = new AdcZeroPageXInstruction();
+            _instructions[Opcodes.ADC_Absolute]  = new AdcAbsoluteInstruction();
+            _instructions[Opcodes.ADC_AbsoluteX] = new AdcAbsoluteXInstruction();
+            _instructions[Opcodes.ADC_AbsoluteY] = new AdcAbsoluteYInstruction();
+            _instructions[Opcodes.ADC_IndirectX] = new AdcIndirectXInstruction();
+            _instructions[Opcodes.ADC_IndirectY] = new AdcIndirectYInstruction();
 
-            // AND
+            // --- SBC (Subtract with Carry) ---
+            _instructions[Opcodes.SBC_Immediate] = new SbcImmediateInstruction();
+            _instructions[Opcodes.SBC_ZeroPage]  = new SbcZeroPageInstruction();
+            _instructions[Opcodes.SBC_ZeroPageX] = new SbcZeroPageXInstruction();
+            _instructions[Opcodes.SBC_Absolute]  = new SbcAbsoluteInstruction();
+            _instructions[Opcodes.SBC_AbsoluteX] = new SbcAbsoluteXInstruction();
+            _instructions[Opcodes.SBC_AbsoluteY] = new SbcAbsoluteYInstruction();
+            _instructions[Opcodes.SBC_IndirectX] = new SbcIndirectXInstruction();
+            _instructions[Opcodes.SBC_IndirectY] = new SbcIndirectYInstruction();
+
+            // --- AND ---
             _instructions[Opcodes.AND_Immediate] = new AndImmediateInstruction();
             _instructions[Opcodes.AND_ZeroPage]  = new AndZeroPageInstruction();
+            _instructions[Opcodes.AND_ZeroPageX] = new AndZeroPageXInstruction();
+            _instructions[Opcodes.AND_Absolute]  = new AndAbsoluteInstruction();
+            _instructions[Opcodes.AND_AbsoluteX] = new AndAbsoluteXInstruction();
+            _instructions[Opcodes.AND_AbsoluteY] = new AndAbsoluteYInstruction();
+            _instructions[Opcodes.AND_IndirectX] = new AndIndirectXInstruction();
+            _instructions[Opcodes.AND_IndirectY] = new AndIndirectYInstruction();
 
-            // ORA
+            // --- ORA ---
             _instructions[Opcodes.ORA_Immediate] = new OraImmediateInstruction();
             _instructions[Opcodes.ORA_ZeroPage]  = new OraZeroPageInstruction();
+            _instructions[Opcodes.ORA_ZeroPageX] = new OraZeroPageXInstruction();
+            _instructions[Opcodes.ORA_Absolute]  = new OraAbsoluteInstruction();
+            _instructions[Opcodes.ORA_AbsoluteX] = new OraAbsoluteXInstruction();
+            _instructions[Opcodes.ORA_AbsoluteY] = new OraAbsoluteYInstruction();
+            _instructions[Opcodes.ORA_IndirectX] = new OraIndirectXInstruction();
+            _instructions[Opcodes.ORA_IndirectY] = new OraIndirectYInstruction();
 
-            // EOR
+            // --- EOR ---
             _instructions[Opcodes.EOR_Immediate] = new EorImmediateInstruction();
             _instructions[Opcodes.EOR_ZeroPage]  = new EorZeroPageInstruction();
+            _instructions[Opcodes.EOR_ZeroPageX] = new EorZeroPageXInstruction();
+            _instructions[Opcodes.EOR_Absolute]  = new EorAbsoluteInstruction();
+            _instructions[Opcodes.EOR_AbsoluteX] = new EorAbsoluteXInstruction();
+            _instructions[Opcodes.EOR_AbsoluteY] = new EorAbsoluteYInstruction();
+            _instructions[Opcodes.EOR_IndirectX] = new EorIndirectXInstruction();
+            _instructions[Opcodes.EOR_IndirectY] = new EorIndirectYInstruction();
 
-            // CMP
-            _instructions[Opcodes.CMP_Immediate]   = new CmpImmediateInstruction();
-            _instructions[Opcodes.CMP_ZeroPage]    = new CmpZeroPageInstruction();
-            _instructions[Opcodes.CMP_ZeroPageX]   = new CmpZeroPageXInstruction();
-            _instructions[Opcodes.CMP_Absolute]    = new CmpAbsoluteInstruction(); 
-            _instructions[Opcodes.CMP_AbsoluteX]   = new CmpAbsoluteXInstruction();
-            _instructions[Opcodes.CMP_AbsoluteY]   = new CmpAbsoluteYInstruction();
-            _instructions[Opcodes.CMP_IndirectX]   = new CmpIndirectXInstruction();
-            _instructions[Opcodes.CMP_IndirectY]   = new CmpIndirectYInstruction();
+            // --- CMP (Compare Accumulator) ---
+            _instructions[Opcodes.CMP_Immediate] = new CmpImmediateInstruction();
+            _instructions[Opcodes.CMP_ZeroPage]  = new CmpZeroPageInstruction();
+            _instructions[Opcodes.CMP_ZeroPageX] = new CmpZeroPageXInstruction();
+            _instructions[Opcodes.CMP_Absolute]  = new CmpAbsoluteInstruction();
+            _instructions[Opcodes.CMP_AbsoluteX] = new CmpAbsoluteXInstruction();
+            _instructions[Opcodes.CMP_AbsoluteY] = new CmpAbsoluteYInstruction();
+            _instructions[Opcodes.CMP_IndirectX] = new CmpIndirectXInstruction();
+            _instructions[Opcodes.CMP_IndirectY] = new CmpIndirectYInstruction();
 
+            // --- CPX (Compare X) ---
+            _instructions[Opcodes.CPX_Immediate] = new CpxImmediateInstruction();
+            _instructions[Opcodes.CPX_ZeroPage]  = new CpxZeroPageInstruction();
+            _instructions[Opcodes.CPX_Absolute]  = new CpxAbsoluteInstruction();
 
-            // Flag Instructions
+            // --- CPY (Compare Y) ---
+            _instructions[Opcodes.CPY_Immediate] = new CpyImmediateInstruction();
+            _instructions[Opcodes.CPY_ZeroPage]  = new CpyZeroPageInstruction();
+            _instructions[Opcodes.CPY_Absolute]  = new CpyAbsoluteInstruction();
+
+            // --- Регистровые пересылки (Register Transfers) ---
+            _instructions[Opcodes.TAX] = new TaxInstruction();
+            _instructions[Opcodes.TAY] = new TayInstruction();
+            _instructions[Opcodes.TXA] = new TxaInstruction();
+            _instructions[Opcodes.TYA] = new TyaInstruction();
+            _instructions[Opcodes.TSX] = new TsxInstruction();
+            _instructions[Opcodes.TXS] = new TxsInstruction();
+
+            // --- Инкременты и декременты (INX, INY, DEX, DEY) ---
+            _instructions[Opcodes.INX] = new InxInstruction();
+            _instructions[Opcodes.INY] = new InyInstruction();
+            _instructions[Opcodes.DEX] = new DexInstruction();
+            _instructions[Opcodes.DEY] = new DeyInstruction();
+
+            // --- Инкременты и декременты памяти ---
+            _instructions[Opcodes.INC_ZeroPage] = new IncZeroPageInstruction();
+            _instructions[Opcodes.DEC_ZeroPage] = new DecZeroPageInstruction();
+
+            // --- Флаги процессора (Processor Status Flags) ---
             _instructions[Opcodes.CLC] = new ClcInstruction();
             _instructions[Opcodes.SEC] = new SecInstruction();
             _instructions[Opcodes.CLI] = new CliInstruction();
@@ -85,50 +156,37 @@ namespace Cpu6502Core
             _instructions[Opcodes.CLV] = new ClvInstruction();
             _instructions[Opcodes.CLD] = new CldInstruction();
             _instructions[Opcodes.SED] = new SedInstruction();
-            
-            // CPX
-            _instructions[Opcodes.CPX_Immediate] = new CpxImmediateInstruction();
-            _instructions[Opcodes.CPX_ZeroPage]  = new CpxZeroPageInstruction();
-            _instructions[Opcodes.CPX_Absolute]  = new CpxAbsoluteInstruction(); 
 
-            // CPY
-            _instructions[Opcodes.CPY_Immediate] = new CpyImmediateInstruction();
-            _instructions[Opcodes.CPY_ZeroPage]  = new CpyZeroPageInstruction();
-            _instructions[Opcodes.CPY_Absolute]  = new CpyAbsoluteInstruction(); 
-
-            // Control Flow & Branching
-            _instructions[Opcodes.JMP_Absolute]  = new JmpAbsoluteInstruction();
-            _instructions[Opcodes.JSR_Absolute]  = new JsrInstruction();
-            _instructions[Opcodes.RTS]           = new RtsInstruction();
-            _instructions[Opcodes.BEQ]           = new BeqInstruction();
-            _instructions[Opcodes.BNE]           = new BneInstruction();
-
-            // Stack Operations
+            // --- Стек (Stack Operations) ---
             _instructions[Opcodes.PHA] = new PhaInstruction();
             _instructions[Opcodes.PLA] = new PlaInstruction();
             _instructions[Opcodes.PHP] = new PhpInstruction();
             _instructions[Opcodes.PLP] = new PlpInstruction();
 
-
-            // Bitwise
-            _instructions[Opcodes.BIT_ZeroPage] = new BitZeroPageInstruction();
-
-            // Shift / Rotate Accumulator
+            // --- Битовые тесты и сдвиги / вращения ---
+            _instructions[Opcodes.BIT_ZeroPage]    = new BitZeroPageInstruction();
             _instructions[Opcodes.ASL_Accumulator] = new AslAccumulatorInstruction();
+            _instructions[Opcodes.ASL_ZeroPage]    = new AslZeroPageInstruction();
             _instructions[Opcodes.LSR_Accumulator] = new LsrAccumulatorInstruction();
+            _instructions[Opcodes.LSR_ZeroPage]    = new LsrZeroPageInstruction();
             _instructions[Opcodes.ROL_Accumulator] = new RolAccumulatorInstruction();
             _instructions[Opcodes.ROR_Accumulator] = new RorAccumulatorInstruction();
 
-            // Branching Instructions
-            _instructions[Opcodes.BPL] = new BplInstruction();
+            // --- Управление потоком (JMP, JSR, RTS) ---
+            _instructions[Opcodes.JMP_Absolute] = new JmpAbsoluteInstruction();
+            _instructions[Opcodes.JMP_Indirect] = new JmpIndirectInstruction();
+            _instructions[Opcodes.JSR_Absolute] = new JsrInstruction();
+            _instructions[Opcodes.RTS]          = new RtsInstruction();
+
+            // --- Условные переходы (Branches) ---
+            _instructions[Opcodes.BEQ] = new BeqInstruction();
+            _instructions[Opcodes.BNE] = new BneInstruction();
             _instructions[Opcodes.BMI] = new BmiInstruction();
-            _instructions[Opcodes.BVC] = new BvcInstruction();
-            _instructions[Opcodes.BVS] = new BvsInstruction();
+            _instructions[Opcodes.BPL] = new BplInstruction();
             _instructions[Opcodes.BCC] = new BccInstruction();
             _instructions[Opcodes.BCS] = new BcsInstruction();
-            _instructions[Opcodes.BNE] = new BneInstruction();
-            _instructions[Opcodes.BEQ] = new BeqInstruction();
-
+            _instructions[Opcodes.BVC] = new BvcInstruction();
+            _instructions[Opcodes.BVS] = new BvsInstruction();
         }
 
         public void Reset()
@@ -137,8 +195,14 @@ namespace Cpu6502Core
             _regs.X = 0;
             _regs.Y = 0;
             _regs.S = 0xFD;
-            _regs.PC = 0x8000;
             _regs.P = 0x24;
+
+            byte low = _memory.Read(0xFFFC);
+            byte high = _memory.Read(0xFFFD);
+            ushort resetVector = (ushort)((high << 8) | low);
+
+            // Если вектор прописан в ROM — прыгаем по нему, иначе стартуем с 0x8000
+            _regs.PC = (resetVector != 0) ? resetVector : (ushort)0x8000;
         }
 
         public byte Read(ushort address) => _memory.Read(address);
