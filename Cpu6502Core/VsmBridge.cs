@@ -67,6 +67,23 @@ namespace Cpu6502Core
         [UnmanagedCallersOnly(EntryPoint = "createdsimmodel", CallConvs = new[] { typeof(CallConvCdecl) })]
         public static unsafe IntPtr CreateDsimModel(IntPtr device, IntPtr ils)
         {
+            // Обязательная авторизация в сервере лицензий Proteus:
+            if (ils != IntPtr.Zero)
+            {
+                try
+                {
+                    IntPtr* ilsVTable = *(IntPtr**)ils;
+                    // Метод authorize находится под индексом 0 в vtable ILICENCESERVER
+                    var authorizeFn = (delegate* unmanaged[Cdecl]<IntPtr, uint, int>)ilsVTable[0];
+                    // 0x80808081 — стандартный ключ Proteus VSM для пользовательских моделей
+                    authorizeFn(ils, 0x80808081);
+                }
+                catch
+                {
+                    // Игнорируем возможные исключения
+                }
+            }
+
             EnsureVTableInitialized();
 
             _memory = new Memory();
