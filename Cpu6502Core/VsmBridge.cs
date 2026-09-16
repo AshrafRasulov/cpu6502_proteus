@@ -64,26 +64,48 @@ namespace Cpu6502Core
         // СЕКЦИЯ 1: Официальный интерфейс Proteus VSM (C++ IDSIMMODEL vtable на C#)
         // =========================================================================
 
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
+
         [UnmanagedCallersOnly(EntryPoint = "createdsimmodel", CallConvs = new[] { typeof(CallConvCdecl) })]
         public static unsafe IntPtr CreateDsimModel(IntPtr device, IntPtr ils)
         {
-            // Обязательная авторизация в сервере лицензий Proteus:
+            int authResult = 0;
+
             if (ils != IntPtr.Zero)
             {
                 try
                 {
                     IntPtr* ilsVTable = *(IntPtr**)ils;
-                    // virtual BOOL authorize (DWORD product_id, DWORD apiver = 110) = 0;
-                    var authorizeFn = (delegate* unmanaged[Cdecl]<IntPtr, uint, uint, int>)ilsVTable[0];
-                    
-                    // 0 = официальный ключ Proteus для пользовательских моделей
-                    // 110 = стандартная версия VSM_API_VERSION
-                    authorizeFn(ils, 0, 110);
+                    // Пробуем авторизацию с 2 параметрами (product_id, apiver)
+                    var auth2 = (delegate* unmanaged[Cdecl]<IntPtr, uint, uint, int>)ilsVTable[0];
+                    authResult = auth2(ils, 0, 110);
+
+                    if (authResult == 0)
+                        authResult = auth2(ils, 0x80808081, 110);
+
+                    // Пробуем вариант с 1 параметром
+                    if (authResult == 0)
+                    {
+                        var auth1 = (delegate* unmanaged[Cdecl]<IntPtr, uint, int>)ilsVTable[0];
+                        authResult = auth1(ils, 0x80808081);
+                        if (authResult == 0)
+                            authResult = auth1(ils, 0);
+                    }
                 }
                 catch
                 {
-                    // Игнорируем возможные исключения
+                    // Игнорируем исключения
                 }
+            }
+
+            // Показываем окно для проверки, что загрузилась именно НОВАЯ DLL
+            MessageBox(IntPtr.Zero, $"CreateDsimModel вызван! Результат авторизации: {authResult}", "VSM 6502 Core", 0x40);
+
+            if (authResult == 0)
+            {
+                // Если авторизация не удалась, Proteus строго требует вернуть 0, иначе будет краш NTDLL
+                return IntPtr.Zero;
             }
 
             EnsureVTableInitialized();
@@ -92,12 +114,16 @@ namespace Cpu6502Core
             _cpu = new Cpu6502();
             _cpu.Reset();
 
-            // Выделяем память под объект C++ класса (первый указатель — ссылка на vtable)
             IntPtr* modelInstance = (IntPtr*)Marshal.AllocHGlobal(IntPtr.Size * 2);
             *modelInstance = _vtablePtr;
 
             return (IntPtr)modelInstance;
         }
+
+
+
+
+        
 
         [UnmanagedCallersOnly(EntryPoint = "deletedsimmodel", CallConvs = new[] { typeof(CallConvCdecl) })]
         public static void DeleteDsimModel(IntPtr model)
