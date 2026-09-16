@@ -73,11 +73,12 @@ namespace Cpu6502Core
                 try
                 {
                     IntPtr* ilsVTable = *(IntPtr**)ils;
-                    // Метод authorize находится под индексом 0 в vtable ILICENCESERVER
-                    // C# 9.0+ поддерживает указатели на unmanaged функции с помощью delegate* unmanaged
-                    var authorizeFn = (delegate* unmanaged[Cdecl]<IntPtr, uint, int>)ilsVTable[0];
-                    // 0x80808081 — стандартный ключ Proteus VSM для пользовательских моделей
-                    authorizeFn(ils, 0x80808081);
+                    // virtual BOOL authorize (DWORD product_id, DWORD apiver = 110) = 0;
+                    var authorizeFn = (delegate* unmanaged[Cdecl]<IntPtr, uint, uint, int>)ilsVTable[0];
+                    
+                    // 0 = официальный ключ Proteus для пользовательских моделей
+                    // 110 = стандартная версия VSM_API_VERSION
+                    authorizeFn(ils, 0, 110);
                 }
                 catch
                 {
