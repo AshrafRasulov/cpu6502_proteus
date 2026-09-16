@@ -64,9 +64,6 @@ namespace Cpu6502Core
         // СЕКЦИЯ 1: Официальный интерфейс Proteus VSM (C++ IDSIMMODEL vtable на C#)
         // =========================================================================
 
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        private static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
-
         [UnmanagedCallersOnly(EntryPoint = "createdsimmodel", CallConvs = new[] { typeof(CallConvCdecl) })]
         public static unsafe IntPtr CreateDsimModel(IntPtr device, IntPtr ils)
         {
@@ -77,21 +74,11 @@ namespace Cpu6502Core
                 try
                 {
                     IntPtr* ilsVTable = *(IntPtr**)ils;
-                    // Пробуем авторизацию с 2 параметрами (product_id, apiver)
                     var auth2 = (delegate* unmanaged[Cdecl]<IntPtr, uint, uint, int>)ilsVTable[0];
                     authResult = auth2(ils, 0, 110);
 
                     if (authResult == 0)
                         authResult = auth2(ils, 0x80808081, 110);
-
-                    // Пробуем вариант с 1 параметром
-                    if (authResult == 0)
-                    {
-                        var auth1 = (delegate* unmanaged[Cdecl]<IntPtr, uint, int>)ilsVTable[0];
-                        authResult = auth1(ils, 0x80808081);
-                        if (authResult == 0)
-                            authResult = auth1(ils, 0);
-                    }
                 }
                 catch
                 {
@@ -99,12 +86,8 @@ namespace Cpu6502Core
                 }
             }
 
-            // Показываем окно для проверки, что загрузилась именно НОВАЯ DLL
-            MessageBox(IntPtr.Zero, $"CreateDsimModel вызван! Результат авторизации: {authResult}", "VSM 6502 Core", 0x40);
-
             if (authResult == 0)
             {
-                // Если авторизация не удалась, Proteus строго требует вернуть 0, иначе будет краш NTDLL
                 return IntPtr.Zero;
             }
 
@@ -114,7 +97,12 @@ namespace Cpu6502Core
             _cpu = new Cpu6502();
             _cpu.Reset();
 
-            IntPtr* modelInstance = (IntPtr*)Marshal.AllocHGlobal(IntPtr.Size * 2);
+            // Выделяем безопасный буфер под C++ объект модели
+            IntPtr* modelInstance = (IntPtr*)Marshal.AllocHGlobal(256);
+            for (int i = 0; i < 256 / IntPtr.Size; i++)
+            {
+                modelInstance[i] = IntPtr.Zero;
+            }
             *modelInstance = _vtablePtr;
 
             return (IntPtr)modelInstance;
@@ -123,7 +111,7 @@ namespace Cpu6502Core
 
 
 
-        
+
 
         [UnmanagedCallersOnly(EntryPoint = "deletedsimmodel", CallConvs = new[] { typeof(CallConvCdecl) })]
         public static void DeleteDsimModel(IntPtr model)
@@ -156,7 +144,20 @@ namespace Cpu6502Core
 
         // Методы C++ интерфейса IDSIMMODEL:
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-        private static unsafe int DsimIsDigital(IntPtr thisPtr, byte* pinname) => 1; // Все пины цифровые
+        private static unsafe int DsimIsDigital(IntPtr thisPtr, byte* pinname)
+        {
+            if (pinname == null) return 1;
+
+            string name = Marshal.PtrToStringAnsi((IntPtr)pinname) ?? "";
+
+            // Выводы питания и неподключенные выводы НЕ должны быть цифровыми!
+            if (name == "VCC" || name == "GND" || name == "NC")
+            {
+                return 0; // 0 = не цифровой (питание/аналог)
+            }
+
+            return 1; // Все остальные (A0-A15, D0-D7, RW, RES, IN) — цифровые
+        }
 
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         private static void DsimSetup(IntPtr thisPtr, IntPtr instance, IntPtr dsim)
